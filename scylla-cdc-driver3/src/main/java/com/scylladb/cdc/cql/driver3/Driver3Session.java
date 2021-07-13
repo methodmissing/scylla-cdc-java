@@ -5,7 +5,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.JdkSSLOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SSLOptions;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.scylladb.cdc.cql.CQLConfiguration;
 
@@ -49,6 +48,7 @@ public class Driver3Session implements AutoCloseable {
                                                .withSSLContext(sslContext)
                                                .build();
                     clusterBuilder = clusterBuilder.withSSL(sslOptions);
+                    clusterBuilder = clusterBuilder.withPort(9142);
                 } catch ( KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException | UnrecoverableKeyException e ) {
                     throw new RuntimeException("Exception creating SSL context for client", e);
                 }
