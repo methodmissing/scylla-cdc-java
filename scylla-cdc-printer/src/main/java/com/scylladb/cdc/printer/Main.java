@@ -17,6 +17,7 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import sun.misc.Signal;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Objects;
@@ -63,10 +64,11 @@ public class Main {
         // from [keyspace].[table] and passes them
         // to consumers created by changeConsumerProvider.
         try (CDCConsumer consumer = CDCConsumer.builder()
-                .addContactPoint(source)
+                .addContactPoint(source, 9142)
                 .addTable(new TableName(keyspace, table))
                 .withConsumerProvider(changeConsumerProvider)
                 .withWorkersCount(1)
+                .withClientCertAuth("/tmp/truststore.jks", "changeit", "JKS", "/tmp/certificate.jks", "changeit", "JKS")
                 .build()) {
 
             // Start a consumer. You can stop it by using .stop() method

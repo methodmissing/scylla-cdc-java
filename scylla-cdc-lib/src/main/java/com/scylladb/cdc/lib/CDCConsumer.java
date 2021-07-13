@@ -187,6 +187,12 @@ public final class CDCConsumer implements AutoCloseable {
             return this;
         }
 
+        public Builder withClientCertAuth(String truststorePath, String truststorePassword, String truststoreType,
+                                          String keystorePath, String keystorePassword, String keystoreType) {
+            cqlConfigurationBuilder.withClientCertAuth(truststorePath, truststorePassword, truststoreType, keystorePath, keystorePassword, keystoreType);
+            return this;
+        }
+
         public Builder withCredentials(String user, String password) {
             cqlConfigurationBuilder.withCredentials(user, password);
             return this;

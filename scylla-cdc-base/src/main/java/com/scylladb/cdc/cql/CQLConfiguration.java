@@ -58,11 +58,23 @@ public class CQLConfiguration {
         ALL
     }
 
+    public enum AuthMechanism {
+        CREDENTIALS,
+        CLIENT_CERT
+    }
+
     public final List<InetSocketAddress> contactPoints;
     public final String user;
     public final String password;
+    public final String truststoreLocation;
+    public final String truststorePassword;
+    public final String truststoreType;
+    public final String keystoreLocation;
+    public final String keystorePassword;
+    public final String keystoreType;
     private final ConsistencyLevel consistencyLevel;
     private final String localDCName;
+    private final AuthMechanism authMechanism;
 
     private CQLConfiguration(List<InetSocketAddress> contactPoints,
                             String user, String password, ConsistencyLevel consistencyLevel,
@@ -72,6 +84,12 @@ public class CQLConfiguration {
 
         this.user = user;
         this.password = password;
+        this.truststoreLocation = null;
+        this.truststorePassword = null;
+        this.truststoreType = null;
+        this.keystoreLocation = null;
+        this.keystorePassword = null;
+        this.keystoreType = null;
         // Either someone did not provide credentials
         // or provided user-password pair.
         Preconditions.checkArgument((this.user == null && this.password == null)
@@ -79,6 +97,32 @@ public class CQLConfiguration {
 
         this.consistencyLevel = Preconditions.checkNotNull(consistencyLevel);
         this.localDCName = localDCName;
+        this.authMechanism = AuthMechanism.CREDENTIALS;
+    }
+
+    private CQLConfiguration(List<InetSocketAddress> contactPoints,
+                            String truststoreLocation, String truststorePassword, String truststoreType,
+                            String keystoreLocation, String keystorePassword, String keystoreType,
+                            ConsistencyLevel consistencyLevel, String localDCName) {
+        this.contactPoints = Preconditions.checkNotNull(contactPoints);
+        Preconditions.checkArgument(!contactPoints.isEmpty());
+
+        this.user = null;
+        this.password = null;
+        this.truststoreLocation = truststoreLocation;
+        this.truststorePassword = truststorePassword;
+        this.truststoreType = truststoreType;
+        this.keystoreLocation = keystoreLocation;
+        this.keystorePassword = keystorePassword;
+        this.keystoreType = keystoreType;
+        // Either someone did not provide credentials
+        // or provided user-password pair.
+        Preconditions.checkArgument((this.truststoreLocation == null && this.truststorePassword == null && this.truststoreType == null && this.keystoreLocation == null && this.keystorePassword == null && this.keystoreType == null)
+                || (this.truststoreLocation != null && this.truststorePassword != null && this.truststoreType != null && this.keystoreLocation != null && this.keystorePassword != null && this.keystoreType != null));
+
+        this.consistencyLevel = Preconditions.checkNotNull(consistencyLevel);
+        this.localDCName = localDCName;
+        this.authMechanism = AuthMechanism.CLIENT_CERT;
     }
 
     /**
@@ -118,8 +162,15 @@ public class CQLConfiguration {
         private final List<InetSocketAddress> contactPoints = new ArrayList<>();
         private String user = null;
         private String password = null;
+        private String truststoreLocation = null;
+        private String truststorePassword = null;
+        private String truststoreType = null;
+        private String keystoreLocation = null;
+        private String keystorePassword = null;
+        private String keystoreType = null;
         private ConsistencyLevel consistencyLevel = DEFAULT_CONSISTENCY_LEVEL;
         private String localDCName = null;
+        private AuthMechanism authMechanism = null;
 
         public Builder addContactPoint(InetSocketAddress contactPoint) {
             Preconditions.checkNotNull(contactPoint);
@@ -147,6 +198,19 @@ public class CQLConfiguration {
         public Builder withCredentials(String user, String password) {
             this.user = Preconditions.checkNotNull(user);
             this.password = Preconditions.checkNotNull(password);
+            this.authMechanism = AuthMechanism.CREDENTIALS;
+            return this;
+        }
+
+        public Builder withClientCertAuth(String truststoreLocation, String truststorePassword, String truststoreType, String keystoreLocation, String keystorePassword, String keystoreType) {
+            this.truststoreLocation = Preconditions.checkNotNull(truststoreLocation);
+            this.truststorePassword = Preconditions.checkNotNull(truststorePassword);
+            this.truststoreType = Preconditions.checkNotNull(truststoreType);
+            this.keystoreLocation = Preconditions.checkNotNull(keystoreLocation);
+            this.keystorePassword = Preconditions.checkNotNull(keystorePassword);
+            this.keystoreType = Preconditions.checkNotNull(keystoreType);
+
+            this.authMechanism = AuthMechanism.CLIENT_CERT;
             return this;
         }
 
@@ -182,7 +246,11 @@ public class CQLConfiguration {
         }
 
         public CQLConfiguration build() {
-            return new CQLConfiguration(contactPoints, user, password, consistencyLevel, localDCName);
+            if (this.authMechanism == AuthMechanism.CREDENTIALS) {
+                return new CQLConfiguration(contactPoints, user, password, consistencyLevel, localDCName);
+            } else {
+                return new CQLConfiguration(contactPoints, truststoreLocation, truststorePassword, truststoreType, keystoreLocation, keystorePassword, keystoreType, consistencyLevel, localDCName);
+            }
         }
     }
 }
