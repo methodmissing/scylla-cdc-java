@@ -37,21 +37,20 @@ public class Driver3Session implements AutoCloseable {
         String user = cqlConfiguration.user, password = cqlConfiguration.password;
         if (user != null && password != null) {
             clusterBuilder = clusterBuilder.withCredentials(user, password);
-        } else {
-            String truststoreLocation = cqlConfiguration.truststoreLocation, truststorePassword = cqlConfiguration.truststorePassword, truststoreType = cqlConfiguration.truststoreType;
-            String keystoreLocation = cqlConfiguration.keystoreLocation, keystorePassword = cqlConfiguration.keystorePassword, keystoreType = cqlConfiguration.keystoreType;
-            if (truststoreLocation != null && truststorePassword != null && truststoreType != null &&
-                   keystoreLocation != null && keystorePassword != null && keystoreType != null) {
-                try {
-                    SSLContext sslContext = createSslCustomContext(truststoreLocation, truststorePassword, truststoreType, keystoreLocation, keystorePassword, keystoreType);
-                    JdkSSLOptions sslOptions = JdkSSLOptions.builder()
-                                               .withSSLContext(sslContext)
-                                               .build();
-                    clusterBuilder = clusterBuilder.withSSL(sslOptions);
-                    clusterBuilder = clusterBuilder.withPort(9142);
-                } catch ( KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException | UnrecoverableKeyException e ) {
-                    throw new RuntimeException("Exception creating SSL context for client", e);
-                }
+        }
+        String truststoreLocation = cqlConfiguration.truststoreLocation, truststorePassword = cqlConfiguration.truststorePassword, truststoreType = cqlConfiguration.truststoreType;
+        String keystoreLocation = cqlConfiguration.keystoreLocation, keystorePassword = cqlConfiguration.keystorePassword, keystoreType = cqlConfiguration.keystoreType;
+        if (truststoreLocation != null && truststorePassword != null && truststoreType != null &&
+                keystoreLocation != null && keystorePassword != null && keystoreType != null) {
+            try {
+                SSLContext sslContext = createSslCustomContext(truststoreLocation, truststorePassword, truststoreType, keystoreLocation, keystorePassword, keystoreType);
+                JdkSSLOptions sslOptions = JdkSSLOptions.builder()
+                                            .withSSLContext(sslContext)
+                                            .build();
+                clusterBuilder = clusterBuilder.withSSL(sslOptions);
+                clusterBuilder = clusterBuilder.withPort(9142);
+            } catch ( KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException | UnrecoverableKeyException e ) {
+                throw new RuntimeException("Exception creating SSL context for client", e);
             }
         }
 
